@@ -48,6 +48,7 @@ defmodule TaskMaster.MixProject do
       {:jason, "~> 1.2"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:nanoid, "~> 2.1"},
       {:phoenix, "~> 1.8.8"},
       {:phoenix_ecto, "~> 4.5"},
       {:phoenix_html, "~> 4.1"},
