@@ -2,7 +2,6 @@ defmodule TaskMaster.Tasks do
   @moduledoc """
   The Tasks context.
   """
-  import Ecto.Query, warn: false
 
   alias TaskMaster.Repo
   alias TaskMaster.Tasks.Task
