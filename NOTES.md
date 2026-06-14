@@ -24,6 +24,8 @@ I couldn't help but think, however, that I'm basically recreating Oban's lifecyc
 For testing with the failure chance, I considered an App env flag but that would affect the ability to keep tests async.
 At my current job, however, I did some serious digging on our large test suite to try to get more sync tests (due to app env use) to be async. I ultimately discovered that there wasn't much benefit because the Github runners were quad-core. So we could only have 4 tests running in parallel. The number of async tests vastly outnumbered the sync tests. I did make sure, however, that tests using app env were in modules that did async: false. Also interesting: we wound up with so many migrations that those took about as much time as the tests did. I campaigned for rolling those up but could never get buy-in.
 
+I initially used dependency injection for the Task failure/success (and skipping the sleep) logic but when I got to the Oban job testing I realized I had to use Mox because Oban.Worker.perform and Oban.Testing.perform_job are single-arity.
+
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too
 - Metric GenServer
 - caching?

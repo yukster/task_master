@@ -3,15 +3,10 @@ defmodule TaskMaster.Tasks do
   The Tasks context.
   """
 
+  alias Ecto.Multi
+  alias TaskMaster.Jobs.TaskJob
   alias TaskMaster.Repo
   alias TaskMaster.Tasks.Task
-
-  @sleep_durations %{
-    low: 6000..8000,
-    normal: 4000..6000,
-    high: 2000..4000,
-    critical: 1000..2000
-  }
 
   @doc """
   Returns the list of tasks.
@@ -49,7 +44,7 @@ defmodule TaskMaster.Tasks do
   end
 
   @doc """
-  Creates a task.
+  Creates a task and its initial Oban job in a Multi.
 
   ## Examples
 
@@ -60,11 +55,18 @@ defmodule TaskMaster.Tasks do
       {:error, %Ecto.Changeset{}}
 
   """
-  # this will need to insert the oban job as well, in a txn/multi
   def create_task(attrs) do
-    %Task{}
-    |> Task.create_changeset(attrs)
-    |> Repo.insert()
+    Multi.new()
+    |> Multi.insert(:task, Task.create_changeset(%Task{}, attrs))
+    |> Multi.run(:job, fn _repo, %{task: task} ->
+      TaskJob.enqueue(task)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{task: task}} -> {:ok, task}
+      {:error, :task, changeset, _} -> {:error, changeset}
+      {:error, :job, reason, _} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -96,12 +98,12 @@ defmodule TaskMaster.Tasks do
       {:error, %Ecto.Changeset{}}
 
   """
-  def run_task(%Task{} = task, process_fn \\ &default_process/1) do
+  def run_task(%Task{} = task) do
     started_at = DateTime.utc_now()
 
     case start_task(task) do
       {:ok, task} ->
-        finish_task(task, started_at, process_fn.(task))
+        finish_task(task, started_at, task_processor().process(task))
 
       {:error, changeset} ->
         {:error, changeset}
@@ -131,20 +133,44 @@ defmodule TaskMaster.Tasks do
         Map.from_struct(attempt)
       end)
 
+    status = calculate_status(task, result)
+
     update_attrs = %{
-      status: calculate_status(task, result),
+      status: status,
       attempts: old_attempts ++ [new_attempt]
     }
 
+    if status == :queued do
+      update_task_and_insert_job(task, update_attrs)
+    else
+      update_task_for_completion(task, update_attrs)
+    end
+  end
+
+  defp update_task_for_completion(task, update_attrs) do
     case update_task(task, update_attrs) do
       {:ok, task} -> {:ok, task}
       {:error, changeset} -> {:error, changeset}
     end
   end
 
+  defp update_task_and_insert_job(task, update_attrs) do
+    Multi.new()
+    |> Multi.update(:task, Task.update_changeset(task, update_attrs))
+    |> Multi.run(:job, fn _repo, %{task: task} ->
+      TaskJob.enqueue(task)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{task: task}} -> {:ok, task}
+      {:error, :task, changeset, _} -> {:error, changeset}
+      {:error, :job, reason, _} -> {:error, reason}
+    end
+  end
+
   defp calculate_status(task, {:error, _reason}) do
     # add one for the current attempt
-    if length(task.attempts) + 1 == task.max_attempts do
+    if length(task.attempts) + 1 >= task.max_attempts do
       :failed
     else
       :queued
@@ -159,17 +185,7 @@ defmodule TaskMaster.Tasks do
   defp attempt_error({:ok, _task}), do: nil
   defp attempt_error({:error, reason}), do: reason
 
-  # simulates the work of a task with potential for failure
-  # Inject fn to have no sleep and certainty for happy/sad tests
-  defp default_process(task) do
-    # sleep amount based on priority
-    :timer.sleep(Enum.random(@sleep_durations[task.priority]))
-
-    # Simulate a 20% chance of failure
-    if :rand.uniform() <= 0.2 do
-      {:error, "Simulated task failure"}
-    else
-      {:ok, task}
-    end
+  defp task_processor do
+    Application.get_env(:task_master, :task_processor)
   end
 end
