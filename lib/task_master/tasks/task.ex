@@ -65,15 +65,14 @@ defmodule TaskMaster.Tasks.Task do
   defp attempt_changeset(attempt, attrs) do
     attempt
     |> cast(attrs, [:started_at, :ended_at, :result, :error])
-    |> validate_required([:started_at])
-    |> validate_completion()
+    |> validate_required([:started_at, :ended_at, :result])
+    |> validate_error()
   end
 
-  defp validate_completion(changeset) do
+  defp validate_error(changeset) do
     case get_field(changeset, :result) do
-      # still in progress, ended_at not required yet
-      nil -> changeset
-      _ -> validate_required(changeset, [:ended_at, :result])
+      :completed -> changeset
+      :failed -> validate_required(changeset, [:error])
     end
   end
 end
