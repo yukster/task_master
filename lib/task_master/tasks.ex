@@ -6,23 +6,12 @@ defmodule TaskMaster.Tasks do
   alias TaskMaster.Repo
   alias TaskMaster.Tasks.Task
 
-  # add task lifecycle functions here
-  # state machine is enforced by lifecycle functions
-  # this also inserts and updates Attempts
-  # lifecycle also results in summary metrics updating
-  # which should invalidate the cache
-
-  # create_task inserts the Task record and the Oban job; status defaults to :queued
-  # start_task updates the Task status to :processing and inserts an Attempt with started_at
-
-  # if attempt succeeds, complete_task updates the Task status to :completed
-  # and updates the Attempt with ended_at and result
-  # if attempt fails, fail_task updates the Task status back to :queued
-  # and inserts an new Oban job for the next Attempt
-  # (I kinda feel like I'm reimplementing Oban here)
-
-  # these are the functions the Oban job can call; need throrough tests around these
-  ##
+  @sleep_durations %{
+    low: 6000..8000,
+    normal: 4000..6000,
+    high: 2000..4000,
+    critical: 1000..2000
+  }
 
   @doc """
   Returns the list of tasks.
@@ -34,6 +23,7 @@ defmodule TaskMaster.Tasks do
 
   """
   def list_tasks do
+    # needs limit or pagination!
     Repo.all(Task)
   end
 
@@ -93,5 +83,93 @@ defmodule TaskMaster.Tasks do
     task
     |> Task.update_changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Runs a task.
+  ## Examples
+
+      iex> run_task(task)
+      {:ok, %Task{}}
+
+      iex> run_task(task)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def run_task(%Task{} = task, process_fn \\ &default_process/1) do
+    started_at = DateTime.utc_now()
+
+    case start_task(task) do
+      {:ok, task} ->
+        finish_task(task, started_at, process_fn.(task))
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  ## private functions
+
+  defp start_task(task) do
+    case update_task(task, %{status: :processing}) do
+      {:ok, task} -> {:ok, task}
+      {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  # result is either :ok or {:error, reason}
+  defp finish_task(task, started_at, result) do
+    new_attempt = %{
+      started_at: started_at,
+      ended_at: DateTime.utc_now(),
+      result: attempt_result(result),
+      error: attempt_error(result)
+    }
+
+    old_attempts =
+      Enum.map(task.attempts, fn attempt ->
+        Map.from_struct(attempt)
+      end)
+
+    update_attrs = %{
+      status: calculate_status(task, result),
+      attempts: old_attempts ++ [new_attempt]
+    }
+
+    case update_task(task, update_attrs) do
+      {:ok, task} -> {:ok, task}
+      {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  defp calculate_status(task, {:error, _reason}) do
+    # add one for the current attempt
+    if length(task.attempts) + 1 == task.max_attempts do
+      :failed
+    else
+      :queued
+    end
+  end
+
+  defp calculate_status(_task, _result), do: :completed
+
+  defp attempt_result({:ok, _task}), do: :completed
+  defp attempt_result({:error, _reason}), do: :failed
+
+  defp attempt_error({:ok, _task}), do: nil
+  defp attempt_error({:error, reason}), do: reason
+
+  # simulates the work of a task with potential for failure
+  # Inject fn to have no sleep and certainty for happy/sad tests
+  defp default_process(task) do
+    # sleep amount based on priority
+    :timer.sleep(Enum.random(@sleep_durations[task.priority]))
+
+    # Simulate a 20% chance of failure
+    if :rand.uniform() <= 0.2 do
+      {:error, "Simulated task failure"}
+    else
+      {:ok, task}
+    end
   end
 end

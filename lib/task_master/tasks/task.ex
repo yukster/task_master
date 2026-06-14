@@ -10,6 +10,7 @@ defmodule TaskMaster.Tasks.Task do
   @task_statuses [:queued, :processing, :completed, :failed]
   @all_fields [:title, :type, :priority, :status, :payload, :max_attempts]
 
+  # embedded schema for attempts
   defmodule Attempt do
     use Ecto.Schema
 
@@ -29,7 +30,7 @@ defmodule TaskMaster.Tasks.Task do
     field :payload, :map
     field :max_attempts, :integer, default: 3
 
-    embeds_many :attempts, Attempt
+    embeds_many :attempts, Attempt, on_replace: :delete
 
     timestamps(type: :utc_datetime_usec)
   end

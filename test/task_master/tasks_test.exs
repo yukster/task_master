@@ -90,4 +90,49 @@ defmodule TaskMaster.TasksTest do
       assert task.title != "some updated title"
     end
   end
+
+  describe "run_task/1" do
+    test "runs a task and updates status to completed on success" do
+      task = task_fixture()
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &successful_fn/1)
+      assert task.status == :completed
+      assert [attempt] = task.attempts
+      assert attempt.result == :completed
+    end
+
+    test "runs a task and updates status to queued on error if attempts remain" do
+      # fixture attempts is 5
+      task = task_fixture()
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert task.status == :queued
+      assert [attempt] = task.attempts
+      assert attempt.result == :failed
+      assert attempt.error == "Simulated task failure"
+    end
+
+    test "runs a task and updates status to failed on error if max attempts reached" do
+      # create task with 1 max attempt so it fails immediately
+      task =
+        task_fixture(%{
+          max_attempts: 2
+        })
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert task.status == :queued
+      assert [attempt] = task.attempts
+      assert attempt.result == :failed
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert task.status == :failed
+      assert [_attempt1, attempt2] = task.attempts
+      assert attempt2.result == :failed
+      assert attempt2.error == "Simulated task failure"
+    end
+  end
+
+  defp successful_fn(task), do: {:ok, task}
+
+  defp failing_fn(_task), do: {:error, "Simulated task failure"}
 end
