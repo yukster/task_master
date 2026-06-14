@@ -1,4 +1,4 @@
-defmodule TaskMaster.Tasks.TasksTest do
+defmodule TaskMaster.TasksTest do
   use TaskMaster.DataCase
 
   alias TaskMaster.Tasks
