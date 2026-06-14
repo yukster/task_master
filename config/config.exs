@@ -7,6 +7,12 @@
 # General application configuration
 import Config
 
+config :task_master, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: TaskMaster.Repo
+
 config :task_master,
   ecto_repos: [TaskMaster.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
@@ -29,6 +35,8 @@ config :logger, :default_formatter,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+config :task_master, :task_processor, TaskMaster.Tasks.DefaultTaskProcessor
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

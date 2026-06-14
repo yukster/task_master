@@ -1,10 +1,12 @@
 defmodule TaskMaster.TasksTest do
   use TaskMaster.DataCase
 
+  import Mox
+  import TaskMaster.TasksFixtures
+
+  alias TaskMaster.MockTaskProcessor
   alias TaskMaster.Tasks
   alias TaskMaster.Tasks.Task
-
-  import TaskMaster.TasksFixtures
 
   @invalid_attrs %{
     priority: nil,
@@ -95,7 +97,9 @@ defmodule TaskMaster.TasksTest do
     test "runs a task and updates status to completed on success" do
       task = task_fixture()
 
-      assert {:ok, %Task{} = task} = Tasks.run_task(task, &successful_fn/1)
+      expect(MockTaskProcessor, :process, fn _task -> {:ok, task} end)
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task)
       assert task.status == :completed
       assert [attempt] = task.attempts
       assert attempt.result == :completed
@@ -105,7 +109,9 @@ defmodule TaskMaster.TasksTest do
       # fixture attempts is 5
       task = task_fixture()
 
-      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      expect(MockTaskProcessor, :process, fn _task -> {:error, "Simulated task failure"} end)
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task)
       assert task.status == :queued
       assert [attempt] = task.attempts
       assert attempt.result == :failed
@@ -119,20 +125,20 @@ defmodule TaskMaster.TasksTest do
           max_attempts: 2
         })
 
-      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      expect(MockTaskProcessor, :process, 2, fn _task ->
+        {:error, "Simulated task failure"}
+      end)
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task)
       assert task.status == :queued
       assert [attempt] = task.attempts
       assert attempt.result == :failed
 
-      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert {:ok, %Task{} = task} = Tasks.run_task(task)
       assert task.status == :failed
       assert [_attempt1, attempt2] = task.attempts
       assert attempt2.result == :failed
       assert attempt2.error == "Simulated task failure"
     end
   end
-
-  defp successful_fn(task), do: {:ok, task}
-
-  defp failing_fn(_task), do: {:error, "Simulated task failure"}
 end

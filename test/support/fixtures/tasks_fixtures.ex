@@ -3,6 +3,8 @@ defmodule TaskMaster.TasksFixtures do
   This module defines test helpers for creating
   entities via the `TaskMaster.Tasks` context.
   """
+  alias TaskMaster.Repo
+  alias TaskMaster.Tasks.Task
 
   # add more fixtures for different types?
   def task_fixture(attrs \\ %{}) do
@@ -17,6 +19,28 @@ defmodule TaskMaster.TasksFixtures do
         max_attempts: 5
       })
       |> TaskMaster.Tasks.create_task()
+
+    task
+  end
+
+  # create_task also creates the job
+  # but we need a task without job for testing job
+  def task_without_job(attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Enum.into(%{
+        title: "other task title",
+        type: "import",
+        priority: "normal",
+        status: "queued",
+        payload: %{"foo" => "bar"},
+        max_attempts: 5
+      })
+
+    {:ok, task} =
+      %Task{}
+      |> Task.create_changeset(attrs)
+      |> Repo.insert()
 
     task
   end

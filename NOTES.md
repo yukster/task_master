@@ -24,6 +24,14 @@ I couldn't help but think, however, that I'm basically recreating Oban's lifecyc
 For testing with the failure chance, I considered an App env flag but that would affect the ability to keep tests async.
 At my current job, however, I did some serious digging on our large test suite to try to get more sync tests (due to app env use) to be async. I ultimately discovered that there wasn't much benefit because the Github runners were quad-core. So we could only have 4 tests running in parallel. The number of async tests vastly outnumbered the sync tests. I did make sure, however, that tests using app env were in modules that did async: false. Also interesting: we wound up with so many migrations that those took about as much time as the tests did. I campaigned for rolling those up but could never get buy-in.
 
+I initially used dependency injection for the Task failure/success (and skipping the sleep) logic but when I got to the Oban job testing I realized I had to use Mox because Oban.Worker.perform and Oban.Testing.perform_job are single-arity.
+
+I don't really have a real state machine but this is all taking me longer than expected. The task status change is all handled by internal logic so it doesn't seem like enforcing state transitions is that required. I'd probably introduce that on a big team with varied levels though, just to call out incorrect logic before it is even in a pull request.
+
+I considered doing separate queues per priority but just went with the default queue to avoid making 4 workers (though I think I can pick queue at enqueue time). In a real app I would probably do that... although I probably wouldn't replicate so much of what Oban does in a real app... I think.
+
+Also did not bother with Oban uniqueness constraints since the jobs are enqued by internal logic and only one will be in flight at a time. That's the hope anyway.
+
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too
 - Metric GenServer
 - caching?
