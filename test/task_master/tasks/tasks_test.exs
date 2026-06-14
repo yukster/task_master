@@ -1,4 +1,4 @@
-defmodule TaskMaster.TasksTest do
+defmodule TaskMaster.Tasks.TasksTest do
   use TaskMaster.DataCase
 
   alias TaskMaster.Tasks
@@ -22,10 +22,14 @@ defmodule TaskMaster.TasksTest do
     end
   end
 
-  describe "get_task!/1" do
-    test "get_task!/1 returns the task with given id" do
+  describe "get_task/1" do
+    test "returns the task with given id" do
       task = task_fixture()
-      assert Tasks.get_task!(task.id) == task
+      assert Tasks.get_task(task.id) == {:ok, task}
+    end
+
+    test "returns error when task is not found" do
+      assert Tasks.get_task("non-existent-id") == {:error, :not_found}
     end
   end
 
@@ -84,7 +88,8 @@ defmodule TaskMaster.TasksTest do
     test "update_task/2 with invalid data returns error changeset" do
       task = task_fixture()
       assert {:error, %Ecto.Changeset{}} = Tasks.update_task(task, @invalid_attrs)
-      assert task == Tasks.get_task!(task.id)
+      assert {:ok, task} = Tasks.get_task(task.id)
+      assert task.title != "some updated title"
     end
   end
 end

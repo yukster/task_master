@@ -23,18 +23,23 @@ defmodule TaskMaster.Tasks do
   @doc """
   Gets a single task.
 
-  Raises `Ecto.NoResultsError` if the Task does not exist.
+  Returns `{:ok, task}` if the Task exists, otherwise `{:error, :not_found}`.
 
   ## Examples
 
-      iex> get_task!("b3fBIkvL6LtZMbuH")
-      %Task{}
+      iex> get_task("b3fBIkvL6LtZMbuH")
+      {:ok, %Task{}}
 
-      iex> get_task!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_task("non-existent-id")
+      {:error, :not_found}
 
   """
-  def get_task!(id), do: Repo.get!(Task, id)
+  def get_task(id) do
+    case Repo.get(Task, id) do
+      nil -> {:error, :not_found}
+      task -> {:ok, task}
+    end
+  end
 
   @doc """
   Creates a task.
