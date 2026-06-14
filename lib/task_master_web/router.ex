@@ -20,10 +20,11 @@ defmodule TaskMasterWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", TaskMasterWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", TaskMasterWeb do
+    pipe_through :api
+
+    resources "/tasks", TaskController, only: [:create, :show, :index]
+  end
 
   # Enable LiveDashboard in development
   if Application.compile_env(:task_master, :dev_routes) do
