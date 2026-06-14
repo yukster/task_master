@@ -7,6 +7,12 @@
 # General application configuration
 import Config
 
+config :task_master, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: TaskMaster.Repo
+
 config :task_master,
   ecto_repos: [TaskMaster.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]

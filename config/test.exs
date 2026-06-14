@@ -1,4 +1,5 @@
 import Config
+config :task_master, Oban, testing: :manual
 
 # Configure your database
 #
