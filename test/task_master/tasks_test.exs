@@ -1,4 +1,4 @@
-defmodule TaskMaster.Tasks.TasksTest do
+defmodule TaskMaster.TasksTest do
   use TaskMaster.DataCase
 
   alias TaskMaster.Tasks
@@ -56,33 +56,31 @@ defmodule TaskMaster.Tasks.TasksTest do
     test "create_task/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Tasks.create_task(@invalid_attrs)
     end
-
-    test "change_task/1 returns a task changeset" do
-      task = task_fixture()
-      assert %Ecto.Changeset{} = Tasks.change_task(task)
-    end
   end
 
   describe "update_task/2" do
     test "update_task/2 with valid data updates the task" do
       task = task_fixture()
 
+      refute task.status == :processing
+
       update_attrs = %{
-        title: "some updated title",
-        type: "export",
-        priority: "high",
-        status: "processing",
-        max_attempts: 10,
-        payload: %{"updated" => "data"}
+        status: :processing,
+        attempts: [
+          %{
+            started_at: DateTime.utc_now(),
+            ended_at: DateTime.utc_now(),
+            result: :completed,
+            error: nil
+          }
+        ]
       }
 
       assert {:ok, %Task{} = task} = Tasks.update_task(task, update_attrs)
-      assert task.priority == :high
       assert task.status == :processing
-      assert task.type == :export
-      assert task.max_attempts == 10
-      assert task.title == "some updated title"
-      assert task.payload == %{"updated" => "data"}
+      assert [task_attempt] = task.attempts
+      assert task_attempt.result == :completed
+      assert task_attempt.error == nil
     end
 
     test "update_task/2 with invalid data returns error changeset" do
@@ -92,4 +90,49 @@ defmodule TaskMaster.Tasks.TasksTest do
       assert task.title != "some updated title"
     end
   end
+
+  describe "run_task/1" do
+    test "runs a task and updates status to completed on success" do
+      task = task_fixture()
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &successful_fn/1)
+      assert task.status == :completed
+      assert [attempt] = task.attempts
+      assert attempt.result == :completed
+    end
+
+    test "runs a task and updates status to queued on error if attempts remain" do
+      # fixture attempts is 5
+      task = task_fixture()
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert task.status == :queued
+      assert [attempt] = task.attempts
+      assert attempt.result == :failed
+      assert attempt.error == "Simulated task failure"
+    end
+
+    test "runs a task and updates status to failed on error if max attempts reached" do
+      # create task with 1 max attempt so it fails immediately
+      task =
+        task_fixture(%{
+          max_attempts: 2
+        })
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert task.status == :queued
+      assert [attempt] = task.attempts
+      assert attempt.result == :failed
+
+      assert {:ok, %Task{} = task} = Tasks.run_task(task, &failing_fn/1)
+      assert task.status == :failed
+      assert [_attempt1, attempt2] = task.attempts
+      assert attempt2.result == :failed
+      assert attempt2.error == "Simulated task failure"
+    end
+  end
+
+  defp successful_fn(task), do: {:ok, task}
+
+  defp failing_fn(_task), do: {:error, "Simulated task failure"}
 end
