@@ -26,6 +26,8 @@ At my current job, however, I did some serious digging on our large test suite t
 
 I initially used dependency injection for the Task failure/success (and skipping the sleep) logic but when I got to the Oban job testing I realized I had to use Mox because Oban.Worker.perform and Oban.Testing.perform_job are single-arity.
 
+I don't really have a real state machine but this is all taking me longer than expected. The task status change is all handled by internal logic so it doesn't seem like enforcing state transitions is that required. I'd probably introduce that on a big team with varied levels though, just to call out incorrect logic before it is even in a pull request.
+
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too
 - Metric GenServer
 - caching?
