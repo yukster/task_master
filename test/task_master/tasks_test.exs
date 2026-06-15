@@ -24,6 +24,21 @@ defmodule TaskMaster.TasksTest do
     end
   end
 
+  describe "summarize_tasks" do
+    test "summary/0 returns counts by status" do
+      task_fixture(%{status: :queued})
+      task_fixture(%{status: :queued})
+      task_fixture(%{status: :completed})
+
+      assert Tasks.sumamarize() == %{
+               queued: 2,
+               processing: 0,
+               completed: 1,
+               failed: 0
+             }
+    end
+  end
+
   describe "get_task/1" do
     test "returns the task with given id" do
       task = task_fixture()
