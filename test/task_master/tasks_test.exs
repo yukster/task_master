@@ -22,6 +22,43 @@ defmodule TaskMaster.TasksTest do
       task = task_fixture()
       assert Tasks.list_tasks() == [task]
     end
+
+    test "filters by status" do
+      task_fixture(%{status: :queued})
+      task_fixture(%{status: :completed})
+
+      list = Tasks.list_tasks(%{"status" => "completed"})
+      assert [task] = list
+      assert task.status == :completed
+    end
+
+    test "filters by priority" do
+      task_fixture(%{priority: :low})
+      task_fixture(%{priority: :critical})
+
+      list = Tasks.list_tasks(%{"priority" => "low"})
+      assert [task] = list
+      assert task.priority == :low
+    end
+
+    test "filters by type" do
+      task_fixture(%{type: :export})
+      task_fixture(%{type: :cleanup})
+
+      list = Tasks.list_tasks(%{"type" => "export"})
+      assert [task] = list
+      assert task.type == :export
+    end
+
+    test "sorted with critical first" do
+      task_fixture(%{priority: :low})
+      task_fixture(%{priority: :critical})
+      task_fixture(%{priority: :high})
+
+      list = Tasks.list_tasks()
+      assert [first, _second, _third] = list
+      assert first.priority == :critical
+    end
   end
 
   describe "summarize_tasks" do
