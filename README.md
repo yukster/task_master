@@ -1,18 +1,22 @@
 # TaskMaster
 
-To start your Phoenix server:
+A simple Task Manager application.
+
+Exposes the following JSON endpoints:
+
+* POST http://localhost:4000/api/tasks — Create a task
+* GET http://localhost:4000/api/tasks — List tasks. Supports filtering via type, status, and priority
+* GET http://localhost:4000/api/tasks/:id — Single task with full details and attempts log.
+* GET http://localhost:4000/api/tasks/summary — Aggregate counts by by task status
+
+# Instructions
 
 * Run `mix setup` to install and setup dependencies
+
+* Run tests, credo, sobelow, formating (basically all CI steps) with `mix precommit`
+
 * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+I added my Bruno API tool collection here in the bruno directory. You should be able to slurp that into [Bruno](https://www.usebruno.com/) to use the requests... sorry, not tested. Also, I didn't bother with env vars. Just use the create and then grab ids from the response.
 
-Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
-
-## Learn more
-
-* Official website: https://www.phoenixframework.org/
-* Guides: https://phoenix.hexdocs.pm/overview.html
-* Docs: https://phoenix.hexdocs.pm
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+See NOTES.md for my notes!
