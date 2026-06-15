@@ -10,6 +10,8 @@ defmodule TaskMaster.Tasks do
   alias TaskMaster.Repo
   alias TaskMaster.Tasks.Task
 
+  @index_limit 100
+
   @doc """
   Returns the list of tasks.
 
@@ -20,8 +22,8 @@ defmodule TaskMaster.Tasks do
 
   """
   def list_tasks do
-    # needs limit or pagination!
-    Repo.all(Task)
+    from(Task, limit: @index_limit)
+    |> Repo.all()
   end
 
   @doc """
