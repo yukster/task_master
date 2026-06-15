@@ -1,0 +1,15 @@
+info:
+  name: Get Task Summary
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: http://localhost:4000/api/tasks/summary
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
