@@ -26,4 +26,8 @@ defmodule TaskMasterWeb.TaskJSON do
       max_attempts: task.max_attempts
     }
   end
+
+  def summary(%{summary: summary}) do
+    %{data: summary}
+  end
 end

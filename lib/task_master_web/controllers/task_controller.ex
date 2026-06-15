@@ -25,4 +25,10 @@ defmodule TaskMasterWeb.TaskController do
       render(conn, :show, task: task)
     end
   end
+
+  def summary(conn, _params) do
+    summary = Tasks.sumamarize()
+
+    render(conn, :summary, summary: summary)
+  end
 end

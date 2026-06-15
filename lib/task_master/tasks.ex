@@ -3,6 +3,8 @@ defmodule TaskMaster.Tasks do
   The Tasks context.
   """
 
+  import Ecto.Query
+
   alias Ecto.Multi
   alias TaskMaster.Jobs.TaskJob
   alias TaskMaster.Repo
@@ -20,6 +22,18 @@ defmodule TaskMaster.Tasks do
   def list_tasks do
     # needs limit or pagination!
     Repo.all(Task)
+  end
+
+  @doc """
+  Returns a summary of how many Tasks are in each status
+  """
+  def sumamarize do
+    defaults = %{queued: 0, processing: 0, completed: 0, failed: 0}
+
+    from(t in Task, group_by: t.status, select: {t.status, count(t.id)})
+    |> Repo.all()
+    |> Map.new()
+    |> then(&Map.merge(defaults, &1))
   end
 
   @doc """

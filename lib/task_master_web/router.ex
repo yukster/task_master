@@ -23,6 +23,7 @@ defmodule TaskMasterWeb.Router do
   scope "/api", TaskMasterWeb do
     pipe_through :api
 
+    get "/tasks/summary", TaskController, :summary
     resources "/tasks", TaskController, only: [:create, :show, :index]
   end
 

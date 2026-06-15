@@ -1,6 +1,8 @@
 defmodule TaskMasterWeb.TaskControllerTest do
   use TaskMasterWeb.ConnCase
 
+  import TaskMaster.TasksFixtures
+
   @create_attrs %{
     title: "some title",
     type: "import",
@@ -25,8 +27,30 @@ defmodule TaskMasterWeb.TaskControllerTest do
 
   describe "index" do
     test "lists all tasks", %{conn: conn} do
+      task_fixture()
       conn = get(conn, ~p"/api/tasks")
-      assert json_response(conn, 200)["data"] == []
+      assert [task_json] = json_response(conn, 200)["data"]
+      assert Map.has_key?(task_json, "id")
+      assert Map.has_key?(task_json, "priority")
+      assert Map.has_key?(task_json, "type")
+    end
+  end
+
+  describe "summary" do
+    test "returns summary count of tasks per status", %{conn: conn} do
+      task_fixture(%{status: :processing})
+      task_fixture(%{status: :queued})
+      task_fixture(%{status: :failed})
+      task_fixture(%{status: :failed})
+
+      conn = get(conn, ~p"/api/tasks/summary")
+
+      assert json_response(conn, 200)["data"] == %{
+               "completed" => 0,
+               "failed" => 2,
+               "processing" => 1,
+               "queued" => 1
+             }
     end
   end
 
