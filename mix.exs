@@ -51,6 +51,8 @@ defmodule TaskMaster.MixProject do
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0"},
       {:nanoid, "~> 2.1"},
+      {:nebulex, "~> 3.0"},
+      {:nebulex_local, "~> 3.0"},
       {:oban, "~> 2.0"},
       {:phoenix, "~> 1.8.8"},
       {:phoenix_ecto, "~> 4.5"},
@@ -60,6 +62,7 @@ defmodule TaskMaster.MixProject do
       {:phoenix_live_view, "~> 1.2.0"},
       {:postgrex, ">= 0.0.0"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:telemetry, "~> 1.3"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"}
     ]

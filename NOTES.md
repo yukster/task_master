@@ -34,8 +34,9 @@ Also did not bother with Oban uniqueness constraints since the jobs are enqued b
 
 The default ordering (priority then inserted_at) is in place but I'm skipping the inserted_at test to save time (heh, almost a double entendre there)
 
-I started a branch where I pulled in the Flop library since it would give me cursor-based pagination and filtering (and also sorting if we wanted to give that option to users). That also would have given me parameter validation. Not that I've really seen a lot of places guard against script-kiddies playing with query params. It's just another Sentry error that we can ignore, right? Heh.
+I started a branch where I pulled in the [Flop](https://hex.pm/packages/flop) library  since it would give me cursor-based pagination and filtering (and also sorting if we wanted to give that option to users). That also would have given me parameter validation. Not that I've really seen a lot of places guard against script-kiddies playing with query params. It's just another Sentry error that we can ignore, right? Heh.
 
+I really wanted to get to at least one extra credit piece so I pulled in the [Nebulex](https://nebulex.hexdocs.pm/Nebulex.html) caching library which I used on a previous project at my current job (though with the Redis adapter). I just added the Cache module ("using" Nebulex) and wired it up in the controller. I would probably prefer to keep that in the context but it was easier to just add it in the controller with a TTL for now. Invalidation for this could be tricky because if there is a lot of task creation going on and tasks running all the time then invalidating the cache for every action would probably mean we get mostly, if not all, cache misses. I would probably keep it as a TTL until we verify the load we're going to have.
 
 
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too

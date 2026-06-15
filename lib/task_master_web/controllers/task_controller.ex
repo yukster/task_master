@@ -1,8 +1,12 @@
 defmodule TaskMasterWeb.TaskController do
   use TaskMasterWeb, :controller
 
+  alias TaskMaster.Cache
   alias TaskMaster.Tasks
   alias TaskMaster.Tasks.Task
+
+  @summary_cache_key "task_summary"
+  @ttl :timer.minutes(2)
 
   action_fallback TaskMasterWeb.FallbackController
 
@@ -28,8 +32,18 @@ defmodule TaskMasterWeb.TaskController do
   end
 
   def summary(conn, _params) do
-    summary = Tasks.sumamarize()
+    summary =
+      case Cache.get(@summary_cache_key) do
+        {:ok, nil} -> get_and_cache_summary()
+        {:ok, summary} -> summary
+      end
 
     render(conn, :summary, summary: summary)
+  end
+
+  defp get_and_cache_summary do
+    summary = Tasks.summarize()
+    Cache.put(@summary_cache_key, summary, ttl: @ttl)
+    summary
   end
 end
