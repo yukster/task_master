@@ -10,6 +10,9 @@ defmodule TaskMaster.Tasks do
   alias TaskMaster.Repo
   alias TaskMaster.Tasks.Task
 
+  # if I had more time I would make this overridable so I could test it
+  @index_limit 100
+
   @doc """
   Returns the list of tasks.
 
@@ -19,10 +22,36 @@ defmodule TaskMaster.Tasks do
       [%Task{}, ...]
 
   """
-  def list_tasks do
-    # needs limit or pagination!
-    Repo.all(Task)
+  def list_tasks(filters \\ %{}) do
+    Task
+    |> filter_by_status(filters["status"])
+    |> filter_by_type(filters["type"])
+    |> filter_by_priority(filters["priority"])
+    |> order_by([t],
+      asc:
+        fragment(
+          "CASE t0.priority WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 END"
+        ),
+      desc: t.inserted_at
+    )
+    |> limit(@index_limit)
+    |> Repo.all()
   end
+
+  defp filter_by_status(query, nil), do: query
+
+  defp filter_by_status(query, status),
+    do: where(query, [t], t.status == ^String.to_existing_atom(status))
+
+  defp filter_by_type(query, nil), do: query
+
+  defp filter_by_type(query, type),
+    do: where(query, [t], t.type == ^String.to_existing_atom(type))
+
+  defp filter_by_priority(query, nil), do: query
+
+  defp filter_by_priority(query, priority),
+    do: where(query, [t], t.priority == ^String.to_existing_atom(priority))
 
   @doc """
   Returns a summary of how many Tasks are in each status

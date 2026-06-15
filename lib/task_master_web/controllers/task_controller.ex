@@ -6,8 +6,9 @@ defmodule TaskMasterWeb.TaskController do
 
   action_fallback TaskMasterWeb.FallbackController
 
-  def index(conn, _params) do
-    tasks = Tasks.list_tasks()
+  def index(conn, params) do
+    # would have preferred to validate these params but...
+    tasks = Tasks.list_tasks(params)
     render(conn, :index, tasks: tasks)
   end
 

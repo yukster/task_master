@@ -34,6 +34,39 @@ defmodule TaskMasterWeb.TaskControllerTest do
       assert Map.has_key?(task_json, "priority")
       assert Map.has_key?(task_json, "type")
     end
+
+    test "filters by priority", %{conn: conn} do
+      task_fixture(%{priority: :critical})
+      task_fixture(%{priority: :high})
+      task_fixture(%{status: :processing})
+
+      conn = get(conn, ~p"/api/tasks", %{"priority" => "critical"})
+      assert [task_json] = json_response(conn, 200)["data"]
+      assert task_json["priority"] == "critical"
+      assert Map.has_key?(task_json, "id")
+    end
+
+    test "filters by status", %{conn: conn} do
+      task_fixture(%{status: :completed})
+      task_fixture(%{priority: :high})
+      task_fixture(%{status: :processing})
+
+      conn = get(conn, ~p"/api/tasks", %{"status" => "processing"})
+      assert [task_json] = json_response(conn, 200)["data"]
+      assert task_json["status"] == "processing"
+      assert Map.has_key?(task_json, "id")
+    end
+
+    test "filters by type", %{conn: conn} do
+      task_fixture(%{type: :export})
+      task_fixture(%{priority: :high})
+      task_fixture(%{type: :cleanup})
+
+      conn = get(conn, ~p"/api/tasks", %{"type" => "cleanup"})
+      assert [task_json] = json_response(conn, 200)["data"]
+      assert task_json["type"] == "cleanup"
+      assert Map.has_key?(task_json, "id")
+    end
   end
 
   describe "summary" do
