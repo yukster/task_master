@@ -38,6 +38,30 @@ I started a branch where I pulled in the [Flop](https://hex.pm/packages/flop) li
 
 I really wanted to get to at least one extra credit piece so I pulled in the [Nebulex](https://nebulex.hexdocs.pm/Nebulex.html) caching library which I used on a previous project at my current job (though with the Redis adapter). I just added the Cache module ("using" Nebulex) and wired it up in the controller. I would probably prefer to keep that in the context but it was easier to just add it in the controller with a TTL for now. Invalidation for this could be tricky because if there is a lot of task creation going on and tasks running all the time then invalidating the cache for every action would probably mean we get mostly, if not all, cache misses. I would probably keep it as a TTL until we verify the load we're going to have.
 
+Almost forgot about the composite indexing question. I've been debating over a composite on the three filterable columns vs indexes on each column. Searching seems to suggest that Postgres is smart enough to combine the individual indexs.
+
+Here's the explain analyze output:
+
+```
+"Seq Scan on tasks t0  (cost=0.00..2.44 rows=1 width=273) (actual time=0.030..0.030 rows=0 loops=1)\n  Filter: ((status = 'queued'::task_status_type) AND (type = 'import'::task_title_type) AND (priority = 'critical'::task_priority_type))\n  Rows Removed by Filter: 25\nPlanning Time: 2.109 ms\nExecution Time: 0.059 ms"
+```
+for a query with all three filters:
+
+```
+query = from(t in Task, where: t.status == ^:queued and t.type == ^:import and t.priority == ^:critical)
+```
+
+and without any index. And here's the explain analyze after:
+
+```
+"Seq Scan on tasks t0  (cost=0.00..2.44 rows=1 width=273) (actual time=0.020..0.021 rows=0 loops=1)\n  Filter: ((status = 'queued'::task_status_type) AND (type = 'import'::task_title_type) AND (priority = 'critical'::task_priority_type))\n  Rows Removed by Filter: 25\nPlanning Time: 1.862 ms\nExecution Time: 0.045 ms"
+```
+
+It did shave some time off but I'm still getting a seq scan... though I think that's because I don't have very many rows.
+
+Well, it's something. Better wrap this up and send it in.
+
+
 
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too
 - Metric GenServer
