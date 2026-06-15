@@ -59,6 +59,8 @@ defmodule TaskMaster.TasksTest do
       assert [first, _second, _third] = list
       assert first.priority == :critical
     end
+
+    # skipping test of the inserted_at ordering for time's sake
   end
 
   describe "summarize_tasks" do

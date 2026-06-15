@@ -32,6 +32,10 @@ I considered doing separate queues per priority but just went with the default q
 
 Also did not bother with Oban uniqueness constraints since the jobs are enqued by internal logic and only one will be in flight at a time. That's the hope anyway.
 
+The default ordering (priority then inserted_at) is in place but I'm skipping the inserted_at test to save time (heh, almost a double entendre there)
+
+
+
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too
 - Metric GenServer
 - caching?
