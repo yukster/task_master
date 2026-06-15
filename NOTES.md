@@ -34,6 +34,8 @@ Also did not bother with Oban uniqueness constraints since the jobs are enqued b
 
 The default ordering (priority then inserted_at) is in place but I'm skipping the inserted_at test to save time (heh, almost a double entendre there)
 
+I started a branch where I pulled in the Flop library since it would give me cursor-based pagination and filtering (and also sorting if we wanted to give that option to users). That also would have given me parameter validation. Not that I've really seen a lot of places guard against script-kiddies playing with query params. It's just another Sentry error that we can ignore, right? Heh.
+
 
 
 - Pagination?! - or just put a limit on the list action for now; last 100? Actually Flop would give me filtering and sorting too
