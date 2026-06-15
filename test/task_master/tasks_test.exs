@@ -160,7 +160,7 @@ defmodule TaskMaster.TasksTest do
     end
 
     test "runs a task and updates status to queued on error if attempts remain" do
-      # fixture attempts is 5
+      # fixture max_attempts is 5
       task = task_fixture()
 
       expect(MockTaskProcessor, :process, fn _task -> {:error, "Simulated task failure"} end)
