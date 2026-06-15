@@ -36,6 +36,13 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# yep, just straight copied from the hex docs :-p
+config :task_master, TaskMaster.MyCache,
+  gc_interval: :timer.hours(12),
+  max_size: 1_000_000,
+  allocated_memory: 2_000_000_000,
+  gc_memory_check_interval: :timer.seconds(10)
+
 config :task_master, :task_processor, TaskMaster.Tasks.DefaultTaskProcessor
 
 # Import environment specific config. This must remain at the bottom

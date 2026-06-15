@@ -69,7 +69,7 @@ defmodule TaskMaster.TasksTest do
       task_fixture(%{status: :queued})
       task_fixture(%{status: :completed})
 
-      assert Tasks.sumamarize() == %{
+      assert Tasks.summarize() == %{
                queued: 2,
                processing: 0,
                completed: 1,

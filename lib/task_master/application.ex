@@ -13,6 +13,7 @@ defmodule TaskMaster.Application do
       {DNSCluster, query: Application.get_env(:task_master, :dns_cluster_query) || :ignore},
       {Oban, Application.fetch_env!(:task_master, Oban)},
       {Phoenix.PubSub, name: TaskMaster.PubSub},
+      TaskMaster.Cache,
       # Start a worker by calling: TaskMaster.Worker.start_link(arg)
       # {TaskMaster.Worker, arg},
       # Start to serve requests, typically the last entry

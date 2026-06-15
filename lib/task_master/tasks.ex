@@ -56,7 +56,7 @@ defmodule TaskMaster.Tasks do
   @doc """
   Returns a summary of how many Tasks are in each status
   """
-  def sumamarize do
+  def summarize do
     defaults = %{queued: 0, processing: 0, completed: 0, failed: 0}
 
     from(t in Task, group_by: t.status, select: {t.status, count(t.id)})
