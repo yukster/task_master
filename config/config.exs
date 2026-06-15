@@ -28,14 +28,6 @@ config :task_master, TaskMasterWeb.Endpoint,
   pubsub_server: TaskMaster.PubSub,
   live_view: [signing_salt: "fvfKEsDh"]
 
-# Configure Elixir's Logger
-config :logger, :default_formatter,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
-
-# Use Jason for JSON parsing in Phoenix
-config :phoenix, :json_library, Jason
-
 # yep, just straight copied from the hex docs :-p
 config :task_master, TaskMaster.MyCache,
   gc_interval: :timer.hours(12),
@@ -44,6 +36,14 @@ config :task_master, TaskMaster.MyCache,
   gc_memory_check_interval: :timer.seconds(10)
 
 config :task_master, :task_processor, TaskMaster.Tasks.DefaultTaskProcessor
+
+# Configure Elixir's Logger
+config :logger, :default_formatter,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]
+
+# Use Jason for JSON parsing in Phoenix
+config :phoenix, :json_library, Jason
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

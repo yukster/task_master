@@ -21,6 +21,15 @@ defmodule TaskMaster.Tasks do
       iex> list_tasks()
       [%Task{}, ...]
 
+      iex(1)> TaskMaster.Tasks.list_tasks(%{"priority" => "normal"})
+      [%Task{}, ...]
+
+      iex(1)> TaskMaster.Tasks.list_tasks(%{"type" => "export"})
+      [%Task{}, ...]
+
+      iex(1)> TaskMaster.Tasks.list_tasks(%{"status" => "completed"})
+      [%Task{}, ...]
+
   """
   def list_tasks(filters \\ %{}) do
     Task
@@ -37,21 +46,6 @@ defmodule TaskMaster.Tasks do
     |> limit(@index_limit)
     |> Repo.all()
   end
-
-  defp filter_by_status(query, nil), do: query
-
-  defp filter_by_status(query, status),
-    do: where(query, [t], t.status == ^String.to_existing_atom(status))
-
-  defp filter_by_type(query, nil), do: query
-
-  defp filter_by_type(query, type),
-    do: where(query, [t], t.type == ^String.to_existing_atom(type))
-
-  defp filter_by_priority(query, nil), do: query
-
-  defp filter_by_priority(query, priority),
-    do: where(query, [t], t.priority == ^String.to_existing_atom(priority))
 
   @doc """
   Returns a summary of how many Tasks are in each status
@@ -153,7 +147,22 @@ defmodule TaskMaster.Tasks do
     end
   end
 
-  ## private functions
+  ## private
+
+  defp filter_by_status(query, nil), do: query
+
+  defp filter_by_status(query, status),
+    do: where(query, [t], t.status == ^String.to_existing_atom(status))
+
+  defp filter_by_type(query, nil), do: query
+
+  defp filter_by_type(query, type),
+    do: where(query, [t], t.type == ^String.to_existing_atom(type))
+
+  defp filter_by_priority(query, nil), do: query
+
+  defp filter_by_priority(query, priority),
+    do: where(query, [t], t.priority == ^String.to_existing_atom(priority))
 
   defp start_task(task) do
     case update_task(task, %{status: :processing}) do

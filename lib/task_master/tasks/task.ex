@@ -43,6 +43,15 @@ defmodule TaskMaster.Tasks.Task do
     |> validate_payload_not_empty(:payload)
   end
 
+  def update_changeset(task, attrs) do
+    task
+    |> cast(attrs, [:status])
+    |> validate_required([:status])
+    |> cast_embed(:attempts, with: &attempt_changeset/2)
+  end
+
+  ## private
+
   defp validate_payload_not_empty(changeset, field) do
     validate_change(changeset, field, fn current_field, value ->
       case value do
@@ -53,13 +62,6 @@ defmodule TaskMaster.Tasks.Task do
           []
       end
     end)
-  end
-
-  def update_changeset(task, attrs) do
-    task
-    |> cast(attrs, [:status])
-    |> validate_required([:status])
-    |> cast_embed(:attempts, with: &attempt_changeset/2)
   end
 
   defp attempt_changeset(attempt, attrs) do

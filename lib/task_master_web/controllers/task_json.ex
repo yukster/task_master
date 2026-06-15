@@ -23,7 +23,16 @@ defmodule TaskMasterWeb.TaskJSON do
       priority: task.priority,
       status: task.status,
       payload: task.payload,
-      max_attempts: task.max_attempts
+      max_attempts: task.max_attempts,
+      attempts:
+        Enum.map(task.attempts, fn t ->
+          %{
+            start_at: t.started_at,
+            ended_at: t.ended_at,
+            result: t.result,
+            error: t.error
+          }
+        end)
     }
   end
 

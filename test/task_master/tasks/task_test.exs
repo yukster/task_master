@@ -1,5 +1,5 @@
 defmodule TaskMaster.Tasks.TaskTest do
-  use TaskMaster.DataCase
+  use TaskMaster.DataCase, async: true
 
   import TaskMaster.TasksFixtures
 

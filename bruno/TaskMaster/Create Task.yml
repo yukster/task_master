@@ -1,0 +1,30 @@
+info:
+  name: Create Task
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http:localhost:4000/api/tasks
+  body:
+    type: json
+    data: |-
+      {
+        "task": {
+          "priority": "critical",
+          "status": "queued",
+          "type": "export",
+          "max_attempts": 5,
+          "title": "awefawef",
+          "payload": {
+            "foo": "bing"
+          }
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
