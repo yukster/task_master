@@ -4,21 +4,19 @@ defmodule TaskMasterWeb.TaskControllerTest do
   import TaskMaster.TasksFixtures
 
   @create_attrs %{
-    title: "some title",
-    type: "import",
-    priority: "normal",
-    status: "queued",
-    max_attempts: 5,
-    payload: %{"foo" => "bar"}
+    "title" => "some title",
+    "type" => "import",
+    "priority" => "normal",
+    "max_attempts" => 5,
+    "payload" => %{"foo" => "bar"}
   }
 
   @invalid_attrs %{
-    priority: nil,
-    status: nil,
-    type: nil,
-    max_attempts: nil,
-    title: nil,
-    payload: nil
+    "priority" => nil,
+    "type" => nil,
+    "max_attempts" => nil,
+    "title" => nil,
+    "payload" => nil
   }
 
   setup %{conn: conn} do
@@ -36,9 +34,10 @@ defmodule TaskMasterWeb.TaskControllerTest do
     end
 
     test "filters by priority", %{conn: conn} do
-      task_fixture(%{priority: :critical})
-      task_fixture(%{priority: :high})
-      task_fixture(%{status: :processing})
+      # task_with_direct_insert allows setting status
+      task_fixture(%{"priority" => "critical"})
+      task_fixture(%{"priority" => "high"})
+      task_with_direct_insert(%{"status" => "processing"})
 
       conn = get(conn, ~p"/api/tasks", %{"priority" => "critical"})
       assert [task_json] = json_response(conn, 200)["data"]
@@ -47,9 +46,9 @@ defmodule TaskMasterWeb.TaskControllerTest do
     end
 
     test "filters by status", %{conn: conn} do
-      task_fixture(%{status: :completed})
-      task_fixture(%{priority: :high})
-      task_fixture(%{status: :processing})
+      task_with_direct_insert(%{"status" => "completed"})
+      task_fixture(%{"priority" => "high"})
+      task_with_direct_insert(%{"status" => "processing"})
 
       conn = get(conn, ~p"/api/tasks", %{"status" => "processing"})
       assert [task_json] = json_response(conn, 200)["data"]
@@ -58,9 +57,9 @@ defmodule TaskMasterWeb.TaskControllerTest do
     end
 
     test "filters by type", %{conn: conn} do
-      task_fixture(%{type: :export})
-      task_fixture(%{priority: :high})
-      task_fixture(%{type: :cleanup})
+      task_fixture(%{"type" => "export"})
+      task_fixture(%{"priority" => "high"})
+      task_fixture(%{"type" => "cleanup"})
 
       conn = get(conn, ~p"/api/tasks", %{"type" => "cleanup"})
       assert [task_json] = json_response(conn, 200)["data"]
@@ -71,10 +70,10 @@ defmodule TaskMasterWeb.TaskControllerTest do
 
   describe "summary" do
     test "returns summary count of tasks per status", %{conn: conn} do
-      task_fixture(%{status: :processing})
-      task_fixture(%{status: :queued})
-      task_fixture(%{status: :failed})
-      task_fixture(%{status: :failed})
+      task_with_direct_insert(%{"status" => "processing"})
+      task_with_direct_insert(%{"status" => "queued"})
+      task_with_direct_insert(%{"status" => "failed"})
+      task_with_direct_insert(%{"status" => "failed"})
 
       conn = get(conn, ~p"/api/tasks/summary")
 
