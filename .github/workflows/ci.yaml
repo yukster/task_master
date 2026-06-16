@@ -72,7 +72,7 @@ jobs:
         path: |
           _build
           deps
-        key: ${{ runner.os }}-build-${{ hashFiles('**/mix.lock') }}-${{ github.sha }}
+        key: ${{ runner.os }}-build-x${{ hashFiles('**/mix.lock') }}-${{ github.sha }}
     - name: Run tests
       run: mix test
 
