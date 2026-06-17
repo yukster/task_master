@@ -39,7 +39,7 @@ defmodule TaskMaster.Jobs.TaskJobTest do
     end
 
     test "failed at max_attempts cancels job" do
-      task = task_without_job(%{max_attempts: 2})
+      task = task_without_job(%{"max_attempts" => 2})
       expect(MockTaskProcessor, :process, 2, fn _task -> {:error, "Something went wrong"} end)
 
       assert :ok = perform_job(TaskJob, %{"task_id" => task.id})

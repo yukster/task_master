@@ -9,12 +9,11 @@ defmodule TaskMaster.Tasks.TaskTest do
     test "validates that payload cannot be an empty map" do
       changeset =
         Task.create_changeset(%Task{}, %{
-          title: "Test Task",
-          type: :import,
-          priority: :normal,
-          status: :queued,
-          max_attempts: 3,
-          payload: %{}
+          "title" => "Test Task",
+          "type" => "import",
+          "priority" => "normal",
+          "max_attempts" => 3,
+          "payload" => %{}
         })
 
       assert changeset.errors[:payload] == {"cannot be an empty map", []}
@@ -23,7 +22,7 @@ defmodule TaskMaster.Tasks.TaskTest do
     test "required fields must be present" do
       changeset = Task.create_changeset(%Task{}, %{})
 
-      Enum.each([:title, :type, :priority, :status, :payload], fn field ->
+      Enum.each([:title, :type, :priority, :payload], fn field ->
         assert changeset.errors[field] == {"can't be blank", [validation: :required]}
       end)
     end
@@ -31,11 +30,10 @@ defmodule TaskMaster.Tasks.TaskTest do
     test "max_attempts has default value" do
       changeset =
         Task.create_changeset(%Task{}, %{
-          title: "Test Task",
-          type: :import,
-          priority: :normal,
-          status: :queued,
-          payload: %{"key" => "value"}
+          "title" => "Test Task",
+          "type" => "import",
+          "priority" => "normal",
+          "payload" => %{"key" => "value"}
         })
 
       assert changeset.data.max_attempts == 3
@@ -44,12 +42,11 @@ defmodule TaskMaster.Tasks.TaskTest do
     test "allows valid payload" do
       changeset =
         Task.create_changeset(%Task{}, %{
-          title: "Test Task",
-          type: :import,
-          priority: :normal,
-          status: :queued,
-          max_attempts: 3,
-          payload: %{"key" => "value"}
+          "title" => "Test Task",
+          "type" => "import",
+          "priority" => "normal",
+          "max_attempts" => 3,
+          "payload" => %{"key" => "value"}
         })
 
       assert changeset.valid?
