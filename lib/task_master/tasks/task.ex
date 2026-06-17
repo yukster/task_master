@@ -9,6 +9,7 @@ defmodule TaskMaster.Tasks.Task do
   @task_priorities [:low, :normal, :high, :critical]
   @task_statuses [:queued, :processing, :completed, :failed]
   @all_fields [:title, :type, :priority, :status, :payload, :max_attempts]
+  @input_fields [:title, :type, :priority, :payload, :max_attempts]
 
   # embedded schema for attempts
   defmodule Attempt do
@@ -37,9 +38,11 @@ defmodule TaskMaster.Tasks.Task do
 
   @doc false
   def create_changeset(task, attrs) do
+    attrs = Map.put(attrs, "status", "queued")
+
     task
     |> cast(attrs, @all_fields)
-    |> validate_required(@all_fields)
+    |> validate_required(@input_fields)
     |> validate_payload_not_empty(:payload)
   end
 

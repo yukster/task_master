@@ -9,12 +9,12 @@ defmodule TaskMaster.TasksTest do
   alias TaskMaster.Tasks.Task
 
   @invalid_attrs %{
-    priority: nil,
-    status: nil,
-    type: nil,
-    max_attempts: nil,
-    title: nil,
-    payload: nil
+    "priority" => nil,
+    "status" => nil,
+    "type" => nil,
+    "max_attempts" => nil,
+    "title" => nil,
+    "payload" => nil
   }
 
   describe "list_tasks/0" do
@@ -24,8 +24,8 @@ defmodule TaskMaster.TasksTest do
     end
 
     test "filters by status" do
-      task_fixture(%{status: :queued})
-      task_fixture(%{status: :completed})
+      task_with_direct_insert(%{"status" => "queued"})
+      task_with_direct_insert(%{"status" => "completed"})
 
       list = Tasks.list_tasks(%{"status" => "completed"})
       assert [task] = list
@@ -33,8 +33,8 @@ defmodule TaskMaster.TasksTest do
     end
 
     test "filters by priority" do
-      task_fixture(%{priority: :low})
-      task_fixture(%{priority: :critical})
+      task_fixture(%{"priority" => "low"})
+      task_fixture(%{"priority" => "critical"})
 
       list = Tasks.list_tasks(%{"priority" => "low"})
       assert [task] = list
@@ -42,8 +42,8 @@ defmodule TaskMaster.TasksTest do
     end
 
     test "filters by type" do
-      task_fixture(%{type: :export})
-      task_fixture(%{type: :cleanup})
+      task_fixture(%{"type" => "export"})
+      task_fixture(%{"type" => "cleanup"})
 
       list = Tasks.list_tasks(%{"type" => "export"})
       assert [task] = list
@@ -51,9 +51,9 @@ defmodule TaskMaster.TasksTest do
     end
 
     test "sorted with critical first" do
-      task_fixture(%{priority: :low})
-      task_fixture(%{priority: :critical})
-      task_fixture(%{priority: :high})
+      task_fixture(%{"priority" => "low"})
+      task_fixture(%{"priority" => "critical"})
+      task_fixture(%{"priority" => "high"})
 
       list = Tasks.list_tasks()
       assert [first, _second, _third] = list
@@ -65,9 +65,9 @@ defmodule TaskMaster.TasksTest do
 
   describe "summarize_tasks" do
     test "summary/0 returns counts by status" do
-      task_fixture(%{status: :queued})
-      task_fixture(%{status: :queued})
-      task_fixture(%{status: :completed})
+      task_with_direct_insert(%{"status" => "queued"})
+      task_with_direct_insert(%{"status" => "queued"})
+      task_with_direct_insert(%{"status" => "completed"})
 
       assert Tasks.summarize() == %{
                queued: 2,
@@ -92,12 +92,11 @@ defmodule TaskMaster.TasksTest do
   describe "create_task/1" do
     test "create_task/1 with valid data creates a task" do
       valid_attrs = %{
-        title: "some title",
-        type: "import",
-        priority: "normal",
-        status: "queued",
-        max_attempts: 5,
-        payload: %{"foo" => "bar"}
+        "title" => "some title",
+        "type" => "import",
+        "priority" => "normal",
+        "max_attempts" => 5,
+        "payload" => %{"foo" => "bar"}
       }
 
       assert {:ok, %Task{} = task} = Tasks.create_task(valid_attrs)
@@ -176,7 +175,7 @@ defmodule TaskMaster.TasksTest do
       # create task with 1 max attempt so it fails immediately
       task =
         task_fixture(%{
-          max_attempts: 2
+          "max_attempts" => 2
         })
 
       expect(MockTaskProcessor, :process, 2, fn _task ->
