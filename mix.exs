@@ -54,6 +54,7 @@ defmodule TaskMaster.MixProject do
       {:nebulex, "~> 3.0"},
       {:nebulex_local, "~> 3.0"},
       {:oban, "~> 2.0"},
+      {:oban_web, "~> 2.0"},
       {:phoenix, "~> 1.8.8"},
       {:phoenix_ecto, "~> 4.5"},
       {:phoenix_html, "~> 4.1"},
