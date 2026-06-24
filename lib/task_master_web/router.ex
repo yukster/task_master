@@ -16,17 +16,17 @@ defmodule TaskMasterWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", TaskMasterWeb do
+  scope "/" do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/", TaskMasterWeb.PageController, :home
   end
 
-  scope "/api", TaskMasterWeb do
+  scope "/api" do
     pipe_through :api
 
-    get "/tasks/summary", TaskController, :summary
-    resources "/tasks", TaskController, only: [:create, :show, :index]
+    get "/tasks/summary", TaskMasterWeb.TaskController, :summary
+    resources "/tasks", TaskMasterWeb.TaskController, only: [:create, :show, :index]
   end
 
   # Enable LiveDashboard in development
